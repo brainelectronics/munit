@@ -45,6 +45,68 @@ revision=head
 Then you can use a subproject fallback when you include munit as a
 dependency to your project: `dependency('munit', fallback: ['munit', 'munit_dep'])`
 
+## Getting started
+
+### Clone this repo
+
+```bash
+cd some/directory
+git clone https://github.com/nemequ/munit.git
+```
+
+### Install meson and ninja
+
+This will create a virtual environment, so you don't touch your local
+modules of python
+
+```bash
+python3 -m venv my_virtual_env
+source my_virtual_env/Scripts/active
+pip install -r requirements.txt
+```
+
+In case you encounter an issue during the Python package installation due to a
+[SSL certificate verification error](https://stackoverflow.com/questions/25981703/pip-install-fails-with-connection-error-ssl-certificate-verify-failed-certi)
+add the `--trusted-host` option to the pip command.
+
+```bash
+pip install -r requirements.txt --trusted-host pypi.org --trusted-host files.pythonhosted.org
+```
+
+To leave the virtual env simply close the Bash or call `deactivate`.
+
+Test the installation of meson and ninja
+
+```bash
+meson --version
+ninja --version
+```
+
+### Compile and test
+
+These steps will create a build directory and run some examples, refer to the
+comments of each command
+
+```bash
+# setup a new build directory called "builddir"
+meson builddir --layout flat --buildtype plain
+
+# compile everything (tests, examples, ...)
+ninja -C builddir
+
+# run all unit tests at once
+ninja -C builddir test
+
+# run the example test only
+ninja -C builddir example_test
+
+# run the calculator test only
+ninja -C builddir calculator_test
+
+# run the calculator example
+ninja -C builddir calculator
+```
+
 ## Documentation
 
 See [the µnit web site](https://nemequ.github.io/munit).
