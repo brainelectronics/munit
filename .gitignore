@@ -4,3 +4,6 @@
 /example
 /*.exe
 /*.dll
+
+# meson related excludes
+builddir
