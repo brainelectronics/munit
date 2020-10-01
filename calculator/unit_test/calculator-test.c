@@ -8,6 +8,9 @@
  * details.
  *********************************************************************/
 
+#include <stdio.h>
+#include <stdbool.h>
+#include <math.h>
 #include "../../munit.h"
 #include "../src/calculator.h"
 
@@ -19,10 +22,116 @@
 #pragma warning(disable: 4127)
 #endif
 
+//--------------------------------------------------------------------------------------------------
+static MunitResult
+test_abolut_truth(const MunitParameter params[], void* data) {
+  // These are just to silence compiler warnings about the parameters
+  // being unused.
+  (void) params;
+  (void) data;
+
+  const unsigned char val_uchar = 'b';
+  const short val_short = 1729;
+  double pi = 3.141592654;
+  char* stewardesses = "stewardesses";
+  char* most_fun_word_to_type;
+
+  // Let's start with the basics
+  munit_assert(0 != 1);
+  munit_assert_false(0);
+  munit_assert_true(true);
+
+  // this will let the test fail
+  // munit_error("FAIL");
+  // munit_errorf("Goodbye, cruel %s", "world");
+
+  // by default everything of INFO or higher will be printed
+  // Info: ../calculator/unit_test/calculator-test.c:47: Some INFO message to log
+  // munit_log(MUNIT_LOG_DEBUG, "Some DEBUG message to log");
+  // munit_log(MUNIT_LOG_INFO, "Some INFO message to log");
+  // munit_log(MUNIT_LOG_WARNING, "Some WARNING message to log");
+
+  // if set as ERROR level, the test will be marked as failed
+  // munit_log(MUNIT_LOG_ERROR, "Some ERROR message to log");
+
+  // There are macros for comparing lots of types
+  // Error: ../calculator/unit_test/calculator-test.c:60: assertion failed: val_uchar == 'c' ('\x62' == '\x63')
+  munit_assert_char('a', ==, 'a');
+  munit_assert_uchar(val_uchar, ==, 'c');
+  munit_assert_short(42, <, val_short);           // -128...127
+  munit_assert_ushort(242, >, 12);                // 0...255 (2^8 -1)
+  munit_assert_int(65530, <, 65631);              // -32768...32767
+  munit_assert_uint(0, <, 65535);                 // 0...65535 (2^16 -1)
+  munit_assert_long(-2147483647, <, 2147483647);  // -2147483648...2147483647
+  munit_assert_ulong(4294967295, >, 0);           // 0...4294967295 (2^32 -1)
+  munit_assert_llong(-9223372036854775800, <, 9223372036854775807);   // -9223372036854775808...9223372036854775807
+  // munit_assert_ullong(18446744073709551610, >, 0);// 0...18446744073709551615 (2^64 -1)
+
+  munit_assert_int8(-128, <, 127);
+  munit_assert_uint8(255, >, 0);
+  munit_assert_int16(-32768, <, 32767);
+  munit_assert_uint16(65535, >, 0);
+  munit_assert_int32(-2147483648, <, 2147483647);
+  munit_assert_uint32(4294967295, >, 0);
+  munit_assert_int64(-9223372036854775808, <, 9223372036854775807);
+  munit_assert_uint64(18446744073709551610, >, 0);
+
+  munit_assert_double(pi, ==, 3.141592654);
+  munit_assert_float(1.23456789, <, 9.87654321);
+
+  // compare values up to the given precision (10e-9)
+  munit_assert_double_equal(3.141592654, 3.141592653589793, 9);
+
+  munit_assert_size(strlen("uncopyrightables"), >, strlen("dermatoglyphics"));
+
+  // String operations
+  munit_assert_string_equal(stewardesses, "stewardesses");
+  munit_assert_string_not_equal(stewardesses, "pilot");
+
+  // Memory operations
+  munit_assert_memory_equal(7, stewardesses, "steward");
+  munit_assert_memory_not_equal(8, stewardesses, "steward");
+
+  // Pointer operations
+  most_fun_word_to_type = stewardesses;
+  char *a_null_pointer = NULL;
+  munit_assert_ptr(stewardesses, ==, most_fun_word_to_type);               // must be a pointer
+  munit_assert_ptr_null(a_null_pointer);        // must be the NULL pointer
+  munit_assert_null(NULL);                      // must be NULL
+  munit_assert_not_null(most_fun_word_to_type); // must not be null
+  munit_assert_ptr_equal(most_fun_word_to_type, stewardesses);
+  munit_assert_ptr_not_null(stewardesses);      // must not be NULL
+
+  // use provided data via _setup function
+  munit_assert_ptr_equal(data, (void*)(uintptr_t)0xdeadbeef);
+  munit_assert_ptr_not_equal(data, stewardesses);
+
+  return MUNIT_OK;
+}
+
+/* The setup function, if you provide one, for a test will be run
+ * before the test, and the return value will be passed as the sole
+ * parameter to the test function. */
+static void*
+test_abolut_truth_setup(const MunitParameter params[], void* user_data) {
+  (void) params;
+
+  // munit_assert_string_equal(user_data, "µnit");
+  return (void*) (uintptr_t) 0xdeadbeef;
+}
+
+/* To clean up after a test, you can use a tear down function.
+ * The fixture argument is the value returned by the setup function above. */
+static void
+test_abolut_truth_tear_down(void* fixture) {
+  munit_assert_ptr_equal(fixture, (void*)(uintptr_t)0xdeadbeef);
+}
+
+//--------------------------------------------------------------------------------------------------
 static MunitResult
 test_sum(const MunitParameter params[], void* data) {
-  /* These are just to silence compiler warnings about the parameters
-   * being unused. */
+  // These are just to silence compiler warnings about the parameters
+  // being unused.
   (void) params;
   (void) data;
 
@@ -30,147 +139,205 @@ test_sum(const MunitParameter params[], void* data) {
 
   // no number, only zero
   result = calc_sum(0, 0);
-  munit_assert(result == 0);
+  munit_assert_int(result, ==, 0);
 
   // only one number and zero
   result = calc_sum(0, 1);
-  munit_assert(result == 1);
+  munit_assert_int(result, ==, 1);
 
   result = calc_sum(4, 0);
-  munit_assert(result == 4);
+  munit_assert_int(result, ==, 4);
 
   // two positive numbers
   result = calc_sum(3, 4);
-  munit_assert(result == 7);
+  munit_assert_int(result, ==, 7);
 
   result = calc_sum(9, 7);
-  munit_assert(result == 16);
+  munit_assert_int(result, ==, 16);
 
   // positive and negative number
   result = calc_sum(-3, 1);
-  munit_assert(result == -2);
+  munit_assert_int(result, ==, -2);
 
   result = calc_sum(-9, 24);
-  munit_assert(result == 15);
+  munit_assert_int(result, ==, 15);
 
   result = calc_sum(5, -10);
-  munit_assert(result == -5);
+  munit_assert_int(result, ==, -5);
 
   result = calc_sum(60, -12);
-  munit_assert(result == 48);
+  munit_assert_int(result, ==, 48);
 
   // two negative numbers
   result = calc_sum(-5, -8);
-  munit_assert(result == -13);
+  munit_assert_int(result, ==, -13);
 
   result = calc_sum(-15, -2);
-  munit_assert(result == -17);
+  munit_assert_int(result, ==, -17);
 
   // Let this test explicitly fail by uncommenting the next line
-  // munit_assert(0 != 0);
+  // munit_assert_int(0, ==, 1);
 
   return MUNIT_OK;
 }
 
-// /* Tests are functions that return void, and take a single void*
-//  * parameter.  We'll get to what that parameter is later. */
-// static MunitResult
-// test_compare(const MunitParameter params[], void* data) {
-//   /* We'll use these later */
-//   const unsigned char val_uchar = 'b';
-//   const short val_short = 1729;
-//   double pi = 3.141592654;
-//   char* stewardesses = "stewardesses";
-//   char* most_fun_word_to_type;
+//--------------------------------------------------------------------------------------------------
+static MunitResult
+test_difference(const MunitParameter params[], void* data) {
+  // These are just to silence compiler warnings about the parameters
+  // being unused.
+  (void) params;
+  (void) data;
 
-//   /* These are just to silence compiler warnings about the parameters
-//    * being unused. */
-//   (void) params;
-//   (void) data;
+  int result = 0;
 
-//   /* Let's start with the basics. */
-//   munit_assert(0 != 1);
+  // no number, only zero
+  result = calc_difference(0, 0);
+  munit_assert_int(result, ==, 0);
 
-//   /* There is also the more verbose, though slightly more descriptive
-//      munit_assert_true/false: */
-//   munit_assert_false(0);
+  // only one number and zero
+  result = calc_difference(0, 1);
+  munit_assert_int(result, ==, -1);
 
-//   /* You can also call munit_error and munit_errorf yourself.  We
-//    * won't do it is used to indicate a failure, but here is what it
-//    * would look like: */
-//   /* munit_error("FAIL"); */
-//   /* munit_errorf("Goodbye, cruel %s", "world"); */
+  result = calc_difference(4, 0);
+  munit_assert_int(result, ==, 4);
 
-//   /* There are macros for comparing lots of types. */
-//   munit_assert_char('a', ==, 'a');
+  // two positive numbers
+  result = calc_difference(3, 4);
+  munit_assert_int(result, ==, -1);
 
-//   /* Sure, you could just assert('a' == 'a'), but if you did that, a
-//    * failed assertion would just say something like "assertion failed:
-//    * val_uchar == 'b'".  µnit will tell you the actual values, so a
-//    * failure here would result in something like "assertion failed:
-//    * val_uchar == 'b' ('X' == 'b')." */
-//   munit_assert_uchar(val_uchar, ==, 'b');
+  result = calc_difference(9, 7);
+  munit_assert_int(result, ==, 2);
 
-//   /* Obviously we can handle values larger than 'char' and 'uchar'.
-//    * There are versions for char, short, int, long, long long,
-//    * int8/16/32/64_t, as well as the unsigned versions of them all. */
-//   munit_assert_short(42, <, val_short);
+  // positive and negative number
+  result = calc_difference(-3, 1);
+  munit_assert_int(result, ==, -4);
 
-//   /* There is also support for size_t.
-//    *
-//    * The longest word in English without repeating any letters is
-//    * "uncopyrightables", which has uncopyrightable (and
-//    * dermatoglyphics, which is the study of fingerprints) beat by a
-//    * character */
-//   munit_assert_size(strlen("uncopyrightables"), >, strlen("dermatoglyphics"));
+  result = calc_difference(5, -10);
+  munit_assert_int(result, ==, 15);
 
-//   /* Of course there is also support for doubles and floats. */
-//   munit_assert_double(pi, ==, 3.141592654);
+  // two negative numbers
+  result = calc_difference(-5, -8);
+  munit_assert_int(result, ==, 3);
 
-//   /* If you want to compare two doubles for equality, you might want
-//    * to consider using munit_assert_double_equal.  It compares two
-//    * doubles for equality within a precison of 1.0 x 10^-(precision).
-//    * Note that precision (the third argument to the macro) needs to be
-//    * fully evaluated to an integer by the preprocessor so µnit doesn't
-//    * have to depend pow, which is often in libm not libc. */
-//   munit_assert_double_equal(3.141592654, 3.141592653589793, 9);
+  result = calc_difference(-15, -2);
+  munit_assert_int(result, ==, -13);
 
-//   /* And if you want to check strings for equality (or inequality),
-//    * there is munit_assert_string_equal/not_equal.
-//    *
-//    * "stewardesses" is the longest word you can type on a QWERTY
-//    * keyboard with only one hand, which makes it loads of fun to type.
-//    * If I'm going to have to type a string repeatedly, let's make it a
-//    * good one! */
-//   munit_assert_string_equal(stewardesses, "stewardesses");
+  return MUNIT_OK;
+}
 
-//   /* A personal favorite macro which is fantastic if you're working
-//    * with binary data, is the one which naïvely checks two blobs of
-//    * memory for equality.  If this fails it will tell you the offset
-//    * of the first differing byte. */
-//   munit_assert_memory_equal(7, stewardesses, "steward");
+//--------------------------------------------------------------------------------------------------
+static MunitResult
+test_multiplication(const MunitParameter params[], void* data) {
+  // These are just to silence compiler warnings about the parameters
+  // being unused.
+  (void) params;
+  (void) data;
 
-//   /* You can also make sure that two blobs differ *somewhere*: */
-//   munit_assert_memory_not_equal(8, stewardesses, "steward");
+  int result = 0;
 
-//   /* There are equal/not_equal macros for pointers, too: */
-//   most_fun_word_to_type = stewardesses;
-//   munit_assert_ptr_equal(most_fun_word_to_type, stewardesses);
+  // no number, only zero
+  result = multiplication(0, 0);
+  munit_assert_int(result, ==, 0);
 
-//   /* And null/not_null */
-//   munit_assert_null(NULL);
-//   munit_assert_not_null(most_fun_word_to_type);
+  // only one number and zero
+  result = multiplication(0, 1);
+  munit_assert_int(result, ==, 0);
 
-//   /* Lets verify that the data parameter is what we expected.  We'll
-//    * see where this comes from in a bit.
-//    *
-//    * Note that the casting isn't usually required; if you give this
-//    * function a real pointer (instead of a number like 0xdeadbeef) it
-//    * would work as expected. */
-//   munit_assert_ptr_equal(data, (void*)(uintptr_t)0xdeadbeef);
+  result = multiplication(4, 0);
+  munit_assert_int(result, ==, 0);
 
-//   return MUNIT_OK;
-// }
+  // two positive numbers
+  result = multiplication(3, 4);
+  munit_assert_int(result, ==, 12);
+
+  result = multiplication(9, 7);
+  munit_assert_int(result, ==, 63);
+
+  // positive and negative number
+  result = multiplication(-3, 1);
+  munit_assert_int(result, ==, -3);
+
+  result = multiplication(5, -10);
+  munit_assert_int(result, ==, -50);
+
+  // two negative numbers
+  result = multiplication(-5, -8);
+  munit_assert_int(result, ==, 40);
+
+  return MUNIT_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+static MunitResult
+test_division(const MunitParameter params[], void* data) {
+  // These are just to silence compiler warnings about the parameters
+  // being unused.
+  (void) params;
+  (void) data;
+  char debugMessage[80];
+
+  double result = 0;
+  int divisor = 0;
+  int dividend = 0;
+
+  double *pdResult = &result;
+  // int *pDivisor = &divisor;
+  // int *pDividend = &dividend;
+
+  // positive, not zero divisor and dividend
+  divisor = 8;
+  dividend = 4;
+  result = division(divisor, dividend);
+  munit_assert_double_equal(result, 2.0, 10);
+
+  divisor = 4;
+  dividend = 8;
+  result = division(divisor, dividend);
+  munit_assert_double_equal(result, 0.5, 10);
+
+  // negative, not zero divisor and dividend
+  divisor = -6;
+  dividend = 2;
+  result = division(divisor, dividend);
+  munit_assert_double_equal(result, -3.0, 10);
+
+  divisor = 4;
+  dividend = -9;
+  result = division(divisor, dividend);
+  munit_assert_double_equal(result, -0.44444, 5);
+
+  divisor = -33;
+  dividend = -10;
+  result = division(divisor, dividend);
+  munit_assert_double_equal(result, 3.30, 5);
+
+  // zero dividend
+  divisor = 12;
+  dividend = 0;
+  result = division(divisor, dividend);
+  sprintf(debugMessage, "Result of division by zero: %1.2f", result);
+  munit_log(MUNIT_LOG_INFO, debugMessage);
+  munit_assert_true(isinf(result)); // check returned values is infinite
+
+  // zero divisor
+  divisor = 0;
+  dividend = 10;
+  result = division(divisor, dividend);
+  sprintf(debugMessage, "Result of division of zero: %1.2f", result);
+  munit_log(MUNIT_LOG_INFO, debugMessage);
+  munit_assert_double(result, ==, 0);
+
+  // zero dividend
+  divisor = 7;
+  dividend = 0;
+  division_ptr(&divisor, &dividend, pdResult);
+  sprintf(debugMessage, "Result of division by zero: %1.2f", *pdResult);
+  munit_log(MUNIT_LOG_INFO, debugMessage);
+  munit_assert_true(isinf(*pdResult)); // check returned values is infinite
+
+  return MUNIT_OK;
+}
 
 /* This test case shows how to accept parameters.  We'll see how to
  * specify them soon.
@@ -182,8 +349,12 @@ test_sum(const MunitParameter params[], void* data) {
  * instead of running them all. */
 // static MunitResult
 // test_parameters(const MunitParameter params[], void* user_data) {
+//   const char* asdf;
 //   const char* foo;
 //   const char* bar;
+//   const int* someNumber;
+
+//   union UnionContent myUnion;
 
 //   (void) user_data;
 
@@ -192,6 +363,13 @@ test_sum(const MunitParameter params[], void* data) {
 //   foo = munit_parameters_get(params, "foo");
 //   /* Similarly, "bar" is one of "four", "five", or "six". */
 //   bar = munit_parameters_get(params, "bar");
+
+//   // "asdf" is one of "nice", "name"
+//   asdf = munit_parameters_get(params, "asdf");
+
+//   // "numbers" is one of 3, 7, 4
+//   // munit_parameters_get_union(params, "numbers", TYPE_INT8, &myUnion);
+
 //   /* "baz" is a bit more complicated.  We don't actually specify a
 //    * list of valid values, so by default NULL is passed.  However, the
 //    * CLI will accept any value.  This is a good way to have a value
@@ -227,42 +405,53 @@ test_sum(const MunitParameter params[], void* data) {
 //       strcmp(bar, "blue") != 0)
 //     return MUNIT_FAIL;
 
+//   if (strcmp(asdf, "nice") != 0 &&
+//       strcmp(asdf, "name") != 0)
+//     return MUNIT_FAIL;
+
+//   /*
+//   if (someNumber != 3 &&
+//       someNumber != 4 &&
+//       someNumber != 7)
+//     return MUNIT_FAIL;
+//   */
+
 //   return MUNIT_OK;
 // }
 
-// /* The setup function, if you provide one, for a test will be run
-//  * before the test, and the return value will be passed as the sole
-//  * parameter to the test function. */
-// static void*
-// test_compare_setup(const MunitParameter params[], void* user_data) {
-//   (void) params;
+/*
+static char* foo_params[] = {
+  (char*) "one", (char*) "two", (char*) "three", NULL
+};
 
-//   munit_assert_string_equal(user_data, "µnit");
-//   return (void*) (uintptr_t) 0xdeadbeef;
-// }
+static char* bar_params[] = {
+  (char*) "red", (char*) "green", (char*) "blue", NULL
+};
 
-// /* To clean up after a test, you can use a tear down function.  The
-//  * fixture argument is the value returned by the setup function
-//  * above. */
-// static void
-// test_compare_tear_down(void* fixture) {
-//   munit_assert_ptr_equal(fixture, (void*)(uintptr_t)0xdeadbeef);
-// }
+// define all values for some parameter
+static char* asdf_params[] = {
+  (char*) "nice", (char*) "name", NULL
+};
 
-// static char* foo_params[] = {
-//   (char*) "one", (char*) "two", (char*) "three", NULL
-// };
+static int8_t* number_params[] = {
+  3, 7, 4, NULL
+};
 
-// static char* bar_params[] = {
-//   (char*) "red", (char*) "green", (char*) "blue", NULL
-// };
+static char* char_params[] = {
+  (char*) "testing", NULL
+};
 
-// static MunitParameterEnum test_params[] = {
-//   { (char*) "foo", foo_params },
-//   { (char*) "bar", bar_params },
-//   { (char*) "baz", NULL },
-//   { NULL, NULL },
-// };
+static MunitParameterEnum test_params[] = {
+  // define a set of parameters with a set of values
+  // name of parameter, content of parameter
+  { (char*) "asdf", asdf_params },
+  { (char*) "foo", foo_params },
+  { (char*) "bar", bar_params },
+  // { (char*) "numbers", char_params, TYPE_INT8, (union_content_t){.ppCharData=asdf_params}},
+  { (char*) "baz", NULL },
+  { NULL, NULL },
+};
+*/
 
 /* Creating a test suite is pretty simple.  First, you'll need an
  * array of tests: */
@@ -298,7 +487,11 @@ static MunitTest test_suite_tests[] = {
   // { (char*) "/example/compare", test_compare, test_compare_setup, test_compare_tear_down, MUNIT_TEST_OPTION_NONE, NULL },
   // { (char*) "/example/compare", test_compare, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL },
 
-  { (char*) "calculate_sum", test_sum, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL },
+  { (char*) "abolut_truth", test_abolut_truth, test_abolut_truth_setup, test_abolut_truth_tear_down, MUNIT_TEST_OPTION_NONE, NULL },
+  { (char*) "sum", test_sum, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL },
+  { (char*) "difference", test_difference, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL },
+  { (char*) "product", test_multiplication, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL },
+  { (char*) "quotient", test_division, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL },
 
   // { (char*) "/example/parameters", test_parameters, NULL, NULL, MUNIT_TEST_OPTION_NONE, test_params },
 
@@ -323,7 +516,7 @@ static const MunitSuite test_suite = {
    * Note that, while it doesn't really matter for the top-level
    * suite, NULL signal the end of an array of tests; you should use
    * an empty string ("") instead. */
-  (char*) "",
+  (char*) "calculator",
   /* The first parameter is the array of test suites. */
   test_suite_tests,
   /* In addition to containing test cases, suites can contain other
